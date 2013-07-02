@@ -1,7 +1,7 @@
-freeboxApi_node
+FreeboxOS Api - NodeJS module
 ===============
 
-A NodeJS module for the new Freebox OS API.
+A NodeJS module for the new FreeboxOS API.
 
 Please read also the doc : http://dev.freebox.fr/sdk/os.
 
@@ -32,7 +32,7 @@ Before doing anything, you need to declare the app to the Freebox. A message wil
 freebox.register();
 ```
 
-On can save app_token, track_id and status by listening at :
+On can save appToken, trackId and status by listening at :
 
 ```
 freebox.on('registered', function(params) {
@@ -43,4 +43,51 @@ freebox.on('registered', function(params) {
 
 Downloads
 --------- 
+
+# Stats
+Echo download stats with :
+```
+freebox.downloadsStats(function(msg){
+  console.log(msg);
+});
+```
+
+# Add a new download
+You can add a new download with *addDownloads(url, dir, recursive, username, password, archive_password, next)*.
+
+'Url' can be multiple. In this case, they have to be separated by a new line delimiter "\n" as below.
+```
+freebox.addDownloads(
+  "http://blog.baillet.eu/public/ciel-bleu-sans-avion-20100417-imgis5346.jpg\nhttp://www.8alamaison.com/wp-content/uploads/2013/04/z2354-carton-rouge3.gif",
+  null, false, null, null, null,
+  function(msg) {
+    console.log(msg);
+  }
+ );
+```
+
+# Manage downloads
+You can manage download by using *downloads(id, action, params, next)*.   
+With no id submitted it returns the entire downloads list.
+With an id you can manage the selected download.
+
+Actions :
+- read (default)
+- log
+- udpate (needs 'params', see below)
+- delete
+- deleteAndErase (delete the download and erase the files downloaded)   
+
+```
+freebox.downloads(2, udpate, {"io_priority": "high","status": "stopped"}, function(msg){
+  console.log(msg);
+});
+```
+
+
+
+
+
+
+
 
