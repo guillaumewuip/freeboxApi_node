@@ -20,6 +20,7 @@ Start
     //Some stuff
   
   });
+  
 ```
 
 
@@ -27,13 +28,17 @@ Declare the app to the Freebox
 ------------------------------
 Before doing anything, you need to declare the app to the Freebox. A message will be prompt on the lcd screnn asking the user to accept or deny.
 
-```freebox.register();```
+```
+freebox.register();
+```
 
 On can save app_token, track_id and status by listening at :
 
-```freebox.on('registered', function(params) {
+```
+freebox.on('registered', function(params) {
   console.log(params);
-});```
+});
+```
 
 
 Downloads
