@@ -7,7 +7,7 @@ Please read also the doc : http://dev.freebox.fr/sdk/os.
 
 *Please consider it as a draft.*
 
-Start
+freebox.connect();
 ------
 
 ```
@@ -24,7 +24,7 @@ Start
 ```
 
 
-Declare the app to the Freebox
+freebox.register();
 ------------------------------
 Before doing anything, you need to declare the app to the Freebox. A message will be prompt on the lcd screnn asking the user to accept or deny.
 
@@ -44,7 +44,7 @@ freebox.on('registered', function(params) {
 Downloads
 --------- 
 
-### Stats
+### freebox.downloadsStats(next)
 Echo download stats with :
 ```
 freebox.downloadsStats(function(msg){
@@ -52,8 +52,7 @@ freebox.downloadsStats(function(msg){
 });
 ```
 
-### Add a new download
-You can add a new download with *addDownloads(url, dir, recursive, username, password, archive_password, next)*.
+### addDownloads(url, dir, recursive, username, password, archive_password, next)
 
 'Url' can be multiple. In this case, they have to be separated by a new line delimiter "\n" as below.
 ```
@@ -66,8 +65,8 @@ freebox.addDownloads(
  );
 ```
 
-### Manage downloads
-You can manage download by using *downloads(id, action, params, next)*.   
+### downloads(id, action, params, next)
+You can manage download.   
 With no id submitted it returns the entire downloads list.
 With an id you can manage the selected download.
 
