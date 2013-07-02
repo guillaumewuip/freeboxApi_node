@@ -44,7 +44,7 @@ freebox.on('registered', function(params) {
 Downloads
 --------- 
 
-# Stats
+### Stats
 Echo download stats with :
 ```
 freebox.downloadsStats(function(msg){
@@ -52,7 +52,7 @@ freebox.downloadsStats(function(msg){
 });
 ```
 
-# Add a new download
+### Add a new download
 You can add a new download with *addDownloads(url, dir, recursive, username, password, archive_password, next)*.
 
 'Url' can be multiple. In this case, they have to be separated by a new line delimiter "\n" as below.
@@ -66,7 +66,7 @@ freebox.addDownloads(
  );
 ```
 
-# Manage downloads
+### Manage downloads
 You can manage download by using *downloads(id, action, params, next)*.   
 With no id submitted it returns the entire downloads list.
 With an id you can manage the selected download.
