@@ -24,7 +24,7 @@ You can start to use the module with these lines of code :
   
 ```
 
-You could also pass params. For example if you want to specifiy the address of the box, or if you alre  dy have an app_token for your app.
+You could also pass params. For example if you want to specifiy the address of the box, or if you alredy have an app_token for your app.
 
 ```
 freebox.connect({
@@ -38,7 +38,7 @@ freebox.connect({
 
 freebox.register();
 ------------------------------
-Before doing anything, you need to declare the app to the Freebox. A message will be prompt on the lcd screnn asking the user to accept or deny.
+Before doing anything, you need to declare the app to the Freebox. A message will be prompt on the lcd screen asking the user to accept or deny.
 
 ```
 freebox.register();
