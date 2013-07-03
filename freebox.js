@@ -24,7 +24,7 @@ var freebox = {
 
 		url        : '',
 
-		uid        : '', //freebox identifer
+		uid        : '', //freebox id
 		deviceName : '',
 		deviceType : '',
 
@@ -42,8 +42,8 @@ var app = {
 		app_version   : '0.0.1',
 		device_name   : "MBA",
 
-		app_token     : 'vnfniZXsSDr9gS/OxJSRrjoyhJ2l/J3azU5ecAWYEIGjcWizWgy3/1bwqf92Qah5', //Your app token, see register()
-		track_id      : '18',
+		app_token     : '', 
+		track_id      : '',
 
 		status        : 'granted',
 		logged_in     : false,
@@ -97,7 +97,10 @@ function flash(msg, type) {
  * Example :
  *
  * freebox.connect({
- * 	'ip' : 'mafreebox.freebox.fr'
+ * 	'ip'        : 'mafreebox.freebox.fr', (optional)
+ * 	'port'      : 80, (optional)
+ * 	'app_token' : '012345', (optional)
+ * 	'track_id'  : '12', (optional)
  * });
  * 
  * Update freebox information
@@ -106,8 +109,16 @@ function flash(msg, type) {
  */
 controller.connect = function infos(box) {
 
-	//Update ip
-	if(typeof box != 'undefined') freebox.ip = box.ip;
+	if(typeof box != 'undefined') {
+		//Update ip (optional)
+		if(typeof box.ip != 'undefined') freebox.ip = box.ip;
+		//Update port (optional)
+		if(typeof box.port != 'undefined') freebox.port = box.port;
+		//app_token (optional)
+		if(typeof box.app_token != 'undefined') app.app_token = box.app_token;
+		//track_id (optional)
+		if(typeof box.track_id != 'undefined') app.track_id = box.track_id;
+	}
 
 	request('http://'+freebox.ip+'/api_version', function (error, response, body) {
 
