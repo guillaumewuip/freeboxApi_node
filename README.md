@@ -9,6 +9,7 @@ Please read also the doc : http://dev.freebox.fr/sdk/os.
 
 freebox.connect();
 ------
+You can start to use the module with these lines of code :
 
 ```
   var freebox = require('./freebox/freebox'); 
@@ -21,6 +22,17 @@ freebox.connect();
   
   });
   
+```
+
+You could also pass params. For example if you want to specifiy the address of the box, or if you alre  dy have an app_token for your app.
+
+```
+freebox.connect({
+  'ip'        : 'mafreebox.freebox.fr', (optional)
+  'port'      : 80, (optional)
+  'app_token' : '012345', (optional)
+  'track_id'  : '12' (optional)
+});
 ```
 
 
