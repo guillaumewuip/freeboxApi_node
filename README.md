@@ -52,6 +52,17 @@ freebox.on('registered', function(params) {
 });
 ```
 
+Stats
+-------
+### freebox.stats(db, date_start, date_end, precision, fields, next)
+Echo freebox's stats. Example :
+```
+freebox.stats(temp, null, null, null, null, function(msg) {
+  console.log(msg);
+});
+```
+date_start, date_end, precision and fields are optional.
+Please see http://dev.freebox.fr/sdk/os/rrd/ for all the options.
 
 Downloads
 --------- 
@@ -95,6 +106,35 @@ freebox.downloads(2, udpate, {"io_priority": "high","status": "stopped"}, functi
 });
 ```
 
+Calls
+-----
+### freebox.calls(next);
+Return all the calls save in the box.
+```
+freebox.calls(function(msg){
+  console.log(msg);
+});
+```
+
+### freebox.call(id, action, params, next)
+Manage a call.
+Actions :
+- Read (default)
+- update
+- delete
+
+Example : read a specific call
+```
+freebox.call(1, 'read', null, function(msg) {
+  console.log(msg);
+});
+```
+Example : update a call :
+```
+freebox.call(1, 'update', {'new' : false}, function(msg) {
+  console.log(msg);
+});
+```
 
 
 
