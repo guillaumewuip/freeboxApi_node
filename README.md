@@ -7,8 +7,10 @@ Please read also the doc : http://dev.freebox.fr/sdk/os.
 
 *Please consider it as a draft.*
 
-freebox.connect();
-------
+Connect & register
+-------------------
+
+###freebox.connect();
 You can start to use the module with these lines of code :
 
 ```
@@ -36,8 +38,7 @@ freebox.connect({
 ```
 
 
-freebox.register();
-------------------------------
+### freebox.register();
 Before doing anything, you need to declare the app to the Freebox. A message will be prompt on the lcd screen asking the user to accept or deny.
 
 ```
@@ -129,7 +130,7 @@ freebox.call(1, 'read', null, function(msg) {
   console.log(msg);
 });
 ```
-Example : update a call :
+Example : update a call 
 ```
 freebox.call(1, 'update', {'new' : false}, function(msg) {
   console.log(msg);
