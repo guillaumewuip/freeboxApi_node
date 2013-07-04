@@ -61,7 +61,7 @@ var app = {
 
 
 /**
- * error method
+ * flash method
  *
  * Just a debug message
  * 
@@ -359,6 +359,76 @@ function sessionApp(next) {
 }
 
 
+/*
+	STATS
+ */
+
+/**
+ * stats method
+ *
+ * Return some stats about the box.
+ *
+ * @see http://dev.freebox.fr/sdk/os/rrd/ for all the options
+ * 
+ * @param  {string}    db         net, temp, dsl, switch
+ * @param  {timestamp} date_start The requested start timestamp of the stats to get (optional)
+ * @param  {timestamp} date_end   The requested end timestamp of the stats to get (optional)
+ * @param  {int}       precision  (optional)
+ * @param  {object}    fields     For just getting some fields (optional) ex : ['tx_1', 'tx_2']
+ */
+function stats(db, date_start, date_end, precision, fields, next) {
+
+	if(app.permissions.settings) {
+
+		var json = { db : db }
+
+		if( date_start ) {
+			json.date_start = date_start;
+		}
+		if( date_end ) {
+			json.date_end = date_end;
+		}
+		if( precision ) {
+			json.precision = precision;
+		}
+		if( fields ) {
+			json.fields = fields;
+		}
+
+
+		var options = {
+			url : freebox.url+'rrd',
+			headers : {
+				'X-Fbx-App-Auth' : app.session_token
+			}, 
+			json : json,
+			method : 'POST',
+		};
+
+		request(options, function (error, response, body) {
+
+			if (!error && response.statusCode == 200) 
+			{
+				next(body.result); //return stats
+			}
+			else
+			{
+				flash(body);
+			}
+
+		});
+
+	} else {
+		next("No settings permission.")
+	}
+
+
+}
+
+controller.stats = function (db, date_start, date_end, precision, fields, next) {
+	loginApp(function(){ stats(db, date_start, date_end, precision, fields, next) });
+}; 
+
 
 
 /*
@@ -382,30 +452,36 @@ function sessionApp(next) {
  */
 function downloadsStats(next) {
 
-	var options = {
-		url : freebox.url+'downloads/stats',
-		headers : {
-			'X-Fbx-App-Auth' : app.session_token
-		}, 
-		method : 'GET',
-	};
+	if(app.permissions.downloader) {
+
+		var options = {
+			url : freebox.url+'downloads/stats',
+			headers : {
+				'X-Fbx-App-Auth' : app.session_token
+			}, 
+			method : 'GET',
+		};
 
 
-	request(options, function (error, response, body) {
+		request(options, function (error, response, body) {
 
-		body = JSON.parse(body);
+			body = JSON.parse(body);
 
-		if (!error && response.statusCode == 200) 
-		{
+			if (!error && response.statusCode == 200) 
+			{
 
-			next(body.result); //return stats
-		}
-		else
-		{
-			flash(body);
-		}
+				next(body.result); //return stats
+			}
+			else
+			{
+				flash(body);
+			}
 
-	});
+		});
+
+	} else {
+		next("No downloader permission.")
+	}
 
 
 }
@@ -438,107 +514,113 @@ controller.downloadsStats = function (next) {
  */
 function downloads(id, action, params, next) {
 
-	//All the download list
-	if(!id) {
+	if(app.permissions.downloader) {
 
-		var options = {
-			url : freebox.url+'downloads/',
-			headers : {
-				'X-Fbx-App-Auth' : app.session_token
-			}, 
-			method : 'GET',
-		};
+		//All the download list
+		if(!id) {
+
+			var options = {
+				url : freebox.url+'downloads/',
+				headers : {
+					'X-Fbx-App-Auth' : app.session_token
+				}, 
+				method : 'GET',
+			};
 
 
-		request(options, function (error, response, body) {
+			request(options, function (error, response, body) {
 
-			if (!error && response.statusCode == 200) 
-			{
-				body = JSON.parse(body);
-
-				if(typeof body.result == 'undefined') {
-					next('No download');
-				}
-				else 
+				if (!error && response.statusCode == 200) 
 				{
-					next(body.result); //return current downloads
+					body = JSON.parse(body);
+
+					if(typeof body.result == 'undefined') {
+						next('No download');
+					}
+					else 
+					{
+						next(body.result); //return current downloads
+					}
 				}
+				else
+				{
+					flash(body);
+				}
+
+			});
+
+		}
+		//Download {id}
+		else {
+
+			var options = {
+				url : freebox.url+'downloads/'+id,
+				headers : {
+					'X-Fbx-App-Auth' : app.session_token
+				}, 
+				json : {},
+				method : 'GET',
+			};
+
+			//What to do ?
+
+			if(!action) action = 'read';
+
+			switch(action) {
+				case 'delete' :
+					options.method = 'DELETE';
+					break;
+
+				case 'deleteAndErase' :
+					options.url    += '/erase';
+					options.method = 'DELETE';
+					break;
+
+				case 'update' :
+					options.method = 'PUT';
+					options.json   = params;
+					break;
+
+				case 'log' : 
+					options.url    += '/log';
+					options.method = 'GET';
+					break;
+
+				case 'read' : break;
+
+				default :
+					next('This action doesn\'t exist. Try read, log, update, delete or deleteAndErase.');
+					break;
 			}
-			else
-			{
-				flash(body);
-			}
 
-		});
 
-	}
-	//Download {id}
-	else {
+			request(options, function (error, response, body) {
 
-		var options = {
-			url : freebox.url+'downloads/'+id,
-			headers : {
-				'X-Fbx-App-Auth' : app.session_token
-			}, 
-			json : {},
-			method : 'GET',
-		};
+				if (!error && response.statusCode == 200) 
+				{
 
-		//What to do ?
+					if(typeof body.result == 'undefined' && (action == 'delete' || action == 'deleteAndErase') ) {
+						next('Deleted.');
+					}
+					else if(typeof body.result == 'undefined') {
+						next('No download with this id.');
+					}
+					else 
+					{
+						next(body.result); //return current downloads
+					}
+				}
+				else
+				{
+					flash(body);
+				}
 
-		if(!action) action = 'read';
+			});
 
-		switch(action) {
-			case 'delete' :
-				options.method = 'DELETE';
-				break;
-
-			case 'deleteAndErase' :
-				options.url    += '/erase';
-				options.method = 'DELETE';
-				break;
-
-			case 'update' :
-				options.method = 'PUT';
-				options.json   = params;
-				break;
-
-			case 'log' : 
-				options.url    += '/log';
-				options.method = 'GET';
-				break;
-
-			case 'read' : break;
-
-			default :
-				next('This action doesn\'t exist. Try read, log, update, delete or deleteAndErase.');
-				break;
 		}
 
-
-		request(options, function (error, response, body) {
-
-			if (!error && response.statusCode == 200) 
-			{
-
-				if(typeof body.result == 'undefined' && (action == 'delete' || action == 'deleteAndErase') ) {
-					next('Deleted.');
-				}
-				else if(typeof body.result == 'undefined') {
-					next('No download with this id.');
-				}
-				else 
-				{
-					next(body.result); //return current downloads
-				}
-			}
-			else
-			{
-				flash(body);
-			}
-
-		});
-
+	} else {
+		next("No downloader permission.")
 	}
 
 };
@@ -570,61 +652,67 @@ controller.downloads = function (id, action, params, next) {
  * @param {bool}     recursive        If true the download will be recursive. See http://dev.freebox.fr/sdk/os/download/#adding-by-url
  * @param {string}   username         (optional)
  * @param {string}   password         (optional)
- * @param {[type]}   archive_password Pasword to decompress the erchive if nzb.
+ * @param {string}   archive_password Pasword to decompress the erchive if nzb.
  * 
  */
 function addDownloads(url, dir, recursive, username, password, archive_password, next) {
 
-	//Form to submit
+	if(app.permissions.downloader) {
 
-	var form = {
-		'download_url_list' : url,
-		'recursive'         : recursive,
-	};
+		//Form to submit
 
-	if(dir) {
-		form.download_dir = dir;
-	}
+		var form = {
+			'download_url_list' : url,
+			'recursive'         : recursive,
+		};
 
-	if(username && password) {
-		form.username = username;
-		form.password = password;
-
-	}
-
-	if(archive_password) {
-		form.archive_password = archive_password;
-	}
-
-
-	//Request options
-
-	var options = {
-		url : freebox.url+'downloads/add',
-		headers : {
-			'X-Fbx-App-Auth' : app.session_token
-		}, 
-		form : form,
-		method : 'POST',
-	};
-
-
-	request(options, function (error, response, body) {
-
-		body = JSON.parse(body);
-
-		if (!error && response.statusCode == 200) 
-		{
-
-			next(body.result); //return the new download(s)
-
-		}
-		else
-		{
-			flash(body);
+		if(dir) {
+			form.download_dir = dir;
 		}
 
-	});
+		if(username && password) {
+			form.username = username;
+			form.password = password;
+
+		}
+
+		if(archive_password) {
+			form.archive_password = archive_password;
+		}
+
+
+		//Request options
+
+		var options = {
+			url : freebox.url+'downloads/add',
+			headers : {
+				'X-Fbx-App-Auth' : app.session_token
+			}, 
+			form : form,
+			method : 'POST',
+		};
+
+
+		request(options, function (error, response, body) {
+
+			body = JSON.parse(body);
+
+			if (!error && response.statusCode == 200) 
+			{
+
+				next(body.result); //return the new download(s)
+
+			}
+			else
+			{
+				flash(body);
+			}
+
+		});
+
+	} else {
+		next("No downloader permission.")
+	}
 
 }
 
@@ -633,7 +721,111 @@ controller.addDownloads = function (url, dir, recursive, username, password, arc
 }; 
 
 
+/*
+	CALLS
+ */
 
+/**
+ * calls method
+ *
+ * Return all the calls.
+ */
+function calls(next) {
+
+	if(app.permissions.calls) {
+
+		var options = {
+			url : freebox.url+'call/log/',
+			headers : {
+				'X-Fbx-App-Auth' : app.session_token
+			}, 
+			method : 'GET',
+		};
+
+		request(options, function (error, response, body) {
+
+			body = JSON.parse(body);
+
+			if (!error && response.statusCode == 200) 
+			{
+				next(body.result); //return all the calls
+			}
+			else
+			{
+				flash(error);
+			}
+
+		});
+
+
+	} else {
+		next("No calls permission.")
+	}
+}
+
+controller.calls = function (next) {
+	loginApp(function(){ calls(next) });
+}; 
+
+/**
+ * call method
+ *
+ * Manage a call.
+ * 
+ * @param  {int}      id     	Call id
+ * @param  {string}   action 	The action to do. Read (default), update, delete.
+ * @param  {json}     params 	If update, params to update.
+ */
+function call(id, action, params, next) {
+
+	if(app.permissions.calls) {
+
+		var options = {
+			url : freebox.url+'call/log/'+id,
+			headers : {
+				'X-Fbx-App-Auth' : app.session_token
+			},
+			json : {},
+			method : 'GET',
+		};
+
+		switch(action) {
+			case null :
+			case 'read' :
+				break;
+
+			case 'update' :
+				options.method = "PUT";
+				options.json = params;
+				break;
+
+			case 'delete' :
+				options.method = "DELETE";
+				break;
+		}
+
+		request(options, function (error, response, body) {
+
+			if (!error && response.statusCode == 200) 
+			{
+				next(body.result); 
+			}
+			else
+			{
+				flash(error);
+			}
+
+		});
+
+
+	} else {
+		next("No calls permission.")
+	}
+}
+
+controller.call = function (id, action, params, next) {
+	loginApp(function(){ call(id, action, params, next) });
+}; 
 
 
 //Exports the module
